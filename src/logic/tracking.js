@@ -1,7 +1,9 @@
 import jbinary from "jbinary";
 
-const getSample = function(binary) {
-  const sample = binary.read({
+const typeset_bin = {
+  "jBinary.all": "bin",
+  "jBinary.littleEndian": true,
+  sample: {
     begin: "char",
     UTCTIME: "uint64",
     TZO: "int16",
@@ -16,61 +18,21 @@ const getSample = function(binary) {
     GPSCOURSE: "float32",
     DIPSTATE: "uint8",
     ACCSTATE: "uint8"
-  });
-  return sample;
-};
-
-const getAllSamples = function(binary) {
-  let final = false;
-  let samples = [];
-  while (!final) {
-    try {
-      const sample = getSample(binary);
-      samples.push(sample);
-    } catch (error) {
-      final = true;
-    }
+  },
+  bin: {
+    header: ["string", 177],
+    length: "uint64",
+    samples: ["array", "sample"]
   }
-  let result = samples.map(sample => {
-    return {
-      begin: sample.begin,
-      UTCTIME: sample.UTCTIME,
-      TZO: sample.TZO,
-      DSTO: sample.DSTO,
-      GPSTIME: sample.GPSTIME,
-      GPSSTATUS: sample.GPSSTATUS,
-      LAT: sample.LAT % 90,
-      LATDIR: sample.LATDIR,
-      LNG: sample.LNG % 180,
-      LNGDIR: sample.LNGDIR,
-      GPSSPEED: sample.GPSSPEED,
-      GPSCOURSE: sample.GPSCOURSE,
-      DIPSTATE: sample.DIPSTATE,
-      ACCSTATE: sample.ACCSTATE
-    };
-  });
-  return result;
-};
-
-const getDecodedFile = function(err, binary) {
-  const header = binary.read({ header: ["string", 177] });
-  const binaryLength = binary.read({ length: "uint64" });
-  const samples = getAllSamples(binary);
-  const file = {
-    header: header.header,
-    lenght: binaryLength.length,
-    samples: samples
-  };
-  return file;
 };
 
 const getTrackingData = async function(url) {
-  let err,
-    binary = await jbinary.load(url);
-  const result = getDecodedFile(err, binary, result);
+  let binary = await jbinary.load(url, typeset_bin);
+  let result = binary.readAll();
   return result;
 };
 
 export default {
-  getTrackingData
+  getTrackingData,
+  typeset_bin
 };

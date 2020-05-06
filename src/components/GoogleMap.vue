@@ -2,7 +2,7 @@
   <div>
     <gmap-map
       :center="center"
-      :zoom="1"
+      :zoom="17"
       ref="mapRef"
       class="fullmap"
       v-bind:style="{ height: height + 'vh' }"
@@ -25,7 +25,8 @@ export default {
       center: { lat: 0, lng: 0 },
       currentPlace: null,
       segmentedMarkers: [],
-      index: 0
+      index: 0,
+      mapInterval: ""
     };
   },
 
@@ -36,8 +37,15 @@ export default {
   methods: {
     addMaker(markers) {
       console.log("updating map");
-      this.segmentedMarkers.push(markers[this.index]);
-      this.index++;
+      try {
+        this.segmentedMarkers.push(markers[this.index]);
+        this.index++;
+        this.$refs.mapRef.$mapPromise.then(map => {
+          map.panTo(markers[this.index]);
+        });
+      } catch (error) {
+        clearInterval(this.mapInterval);
+      }
     }
   },
 
@@ -47,7 +55,7 @@ export default {
         return { lat: sample.LAT, lng: sample.LNG };
       });
 
-      setInterval(this.addMaker, 2000, markers);
+      this.mapInterval = setInterval(this.addMaker, 2000, markers);
     }
   },
 
