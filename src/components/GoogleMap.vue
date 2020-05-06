@@ -44,6 +44,7 @@ export default {
           map.panTo(markers[this.index]);
         });
       } catch (error) {
+        console.log("finished");
         clearInterval(this.mapInterval);
       }
     }
@@ -52,7 +53,9 @@ export default {
   watch: {
     done: async function() {
       let markers = this.samples.map(sample => {
-        return { lat: sample.LAT, lng: sample.LNG };
+        const fixedLat = sample.LATDIR === "N" ? sample.LAT : -sample.LAT;
+        const fixedLNG = sample.LATDIR === "E" ? sample.LNG : -sample.LNG;
+        return { lat: fixedLat, lng: fixedLNG };
       });
 
       this.mapInterval = setInterval(this.addMaker, 2000, markers);
